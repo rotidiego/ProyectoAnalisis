@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime data los Angeles - Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crime data los Angeles - Prediction</h1>
+    <form id="prediction-form">
+        <label for="area">AREA:</label>
+        <select id="area" required>
+            <option value="">Seleccione un área</option>
+        </select>
+        
+        <label for="crm-cd">Crm Cd:</label>
+        <select id="crm-cd" required>
+            <option value="">Seleccione un área</option>
+        </select>
+
+        <label for="vict-descent">Vict Descent:</label>
+        <select id="vict-descent" required>
+            <option value="">Seleccione un área</option>
+        </select>
+
+        <label for="dr-no">DR NO:</label>
+        <select id="dr-no" required>
+            <option value="">Seleccione un área</option>
+        </select>
+
+        <label for="date-occ">DATE OCC:</label>
+        <input type="date" id="date-occ" placeholder="Ej. 2024-01-01" required>
+
+        <label for="part">Part 1-2:</label>
+        <select id="part" required>
+            <option value="1">1</option>
+            <option value="2">2</option>
+        </select>
+
+        
+        <label for="rpt-dist-no">Rpt Dist No:</label>
+        <select id="rpt-dist-no" required>
+            <option value="">Seleccione un área</option>
+        </select>
+
+        <button type="submit">Enviar</button>
+    </form>
+    
+    <div class="results" id="results">
+        <h3>Resultados:</h3>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            const areaSelect = document.getElementById("area");
+            const vicSelect = document.getElementById("vict-descent");
+            const CdSelect = document.getElementById("crm-cd");
+            const DRSelect = document.getElementById("dr-no");
+            const RPTSelect = document.getElementById("rpt-dist-no");
+            
+            try {
+                // Obtener las áreas desde la API
+                const response = await fetch("http://127.0.0.1:5000/areas");
+                if (!response.ok) {
+                    throw new Error(`Error al obtener las áreas: ${response.statusText}`);
+                }
+                const data = await response.json();
+                
+                // Poblar el select con las áreas
+                const areas = data.areas;
+                areas.forEach(area => {
+                    const option = document.createElement("option");
+                    option.value = area.AREA; // Aquí se usa el valor del área
+                    option.textContent = area["AREA NAME"]; // Aquí se muestra el nombre del área
+                    areaSelect.appendChild(option);
+                });
+                const victDescentUnique = [...new Set(data.areas.map(area => area["Vict Descent"]))];
+                victDescentUnique.forEach(area => {
+                    const option = document.createElement("option");
+                    option.value = area; // Aquí se usa el valor del área
+                    option.textContent = area; // Aquí se muestra el nombre del área
+                    vicSelect.appendChild(option);
+                });
+                const Cd1Select = [...new Set(data.areas.map(area => area["Crm Cd"]))];
+                Cd1Select.forEach(area => {
+                    const option = document.createElement("option");
+                    option.value = area; // Aquí se usa el valor del área
+                    option.textContent = area; // Aquí se muestra el nombre del área
+                    CdSelect.appendChild(option);
+                });
+                const dr1Select = [...new Set(data.areas.map(area => area["DR_NO"]))];
+                dr1Select.forEach(area => {
+                    const option = document.createElement("option");
+                    option.value = area; // Aquí se usa el valor del área
+                    option.textContent = area; // Aquí se muestra el nombre del área
+                    DRSelect.appendChild(option);
+                });
+                const r1Select = [...new Set(data.areas.map(area => area["Rpt Dist No"]))];
+                r1Select.forEach(area => {
+                    const option = document.createElement("option");
+                    option.value = area; // Aquí se usa el valor del área
+                    option.textContent = area; // Aquí se muestra el nombre del área
+                    RPTSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error cargando áreas:", error);
+                alert("No se pudieron cargar las áreas.");
+            }
+        });
+
+        document.getElementById("prediction-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const outputElement = document.getElementById("output");
+            outputElement.textContent = "Cargando...";
+
+            try {
+                // Obtén los valores del formulario
+                const records = [
+                    [
+                        document.getElementById("area").value, // Área seleccionada
+                        document.getElementById("vict-descent").value,
+                        document.getElementById("crm-cd").value,
+                        document.getElementById("dr-no").value,
+                        document.getElementById("date-occ").value,
+                        document.getElementById("part").value,
+                        document.getElementById("rpt-dist-no").value
+                    ]
+                ];
+
+                // Llama a la API
+                const response = await fetch("http://127.0.0.1:5000/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ records })
+                });
+
+                // Procesa la respuesta
+                if (!response.ok) {
+                    throw new Error(`Error en la API: ${response.statusText}`);
+                }
+                const result = await response.json();
+
+                // Muestra los resultados en pantalla
+                outputElement.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                // Muestra los errores en pantalla
+                outputElement.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
