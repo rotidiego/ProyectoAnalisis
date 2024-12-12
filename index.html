@@ -96,7 +96,7 @@
             
             try {
                 // Obtener las áreas desde la API
-                const response = await fetch("http://127.0.0.1:5000/areas");
+                const response = await fetch("http://52.117.51.251:8898/areas");
                 if (!response.ok) {
                     throw new Error(`Error al obtener las áreas: ${response.statusText}`);
                 }
@@ -165,7 +165,7 @@
                 ];
 
                 // Llama a la API
-                const response = await fetch("http://127.0.0.1:5000/predict", {
+                const response = await fetch("http://52.117.51.251:8898/predict", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
